@@ -1,6 +1,7 @@
 #include <iostream>
 #include <boost/asio.hpp>
 #include <exception>
+#include <vector>
 
 using namespace boost::asio;
 using ip::tcp;
@@ -17,15 +18,13 @@ int main()
 		tcp::acceptor acceptor_(io_service, endpoint_);
 		tcp::socket client(io_service);
 		acceptor_.accept(client);
-		streambuf buff;
-		std::string msg;
-		boost::system::error_code err_code;
-		boost::asio::read(client, buff, err_code);
-		std::istream is(&buff);
-
-		is >> msg;
 		
-		std::cout << "message: " << msg << std::endl;
+		std::vector<char> msg(128);
+		boost::system::error_code err_code;
+		boost::asio::read(client, boost::asio::buffer(msg), err_code);
+		
+		std::string smsg(msg.begin(), msg.end());
+		std::cout << "message: " << smsg << std::endl;
 	}
 	catch (std::exception e)
 	{
