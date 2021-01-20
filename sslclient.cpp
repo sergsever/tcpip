@@ -14,7 +14,7 @@ using namespace boost::asio;
 
 int main()
 {
-	const char* host = "ifconfig.me";
+	const char* host = "www.lenta.ru";
 	int port = 443;
 	std::cout << "ssl client" << std::endl;
 	try
