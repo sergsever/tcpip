@@ -1,7 +1,7 @@
-All: tcpip client
+All: tcpip client sslclient
 CC=g++
-CFLAGS= 
-LFLAGS= -lpthread -lboost_system
+CFLAGS= -I/usr/src/beast 
+LFLAGS= -lpthread -lboost_system -lssl -lcrypto
 tcpip:  main.o
 	$(CC) main.o $(LFLAGS) -o tcpip
 
@@ -12,4 +12,8 @@ client: client.o
 client.o: client.cpp
 	$(CC) -c $(CFLAGS) client.cpp -o client.o
 clean:
-	rm *.o tcpip client
+	rm *.o tcpip client sslclient
+sslclient.o: sslclient.cpp
+	$(CC) -c $(CFLAGS) sslclient.cpp -o sslclient.o
+sslclient: sslclient.o
+	$(CC) $(LFLAGS) sslclient.o -o sslclient

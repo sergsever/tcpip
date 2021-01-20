@@ -84,6 +84,7 @@
   <ItemGroup>
     <ClCompile Include="client.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="sslclient.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Makefile" />
