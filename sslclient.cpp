@@ -14,8 +14,8 @@ using namespace boost::asio;
 
 int main()
 {
-	const char* host = "www.lenta.ru";
-	int port = 443;
+	const char* host = "localhost";
+	unsigned short port = 443;
 	std::cout << "ssl client" << std::endl;
 	try
 	{
@@ -23,7 +23,7 @@ int main()
 		ssl::context ctx(ssl::context::sslv23);
 //		load_root_certificates(ctx);
 		ctx.set_default_verify_paths();
-		ctx.load_verify_file("/etc/ssl/certs/Atos_TrustedRoot_2011.pem");
+		ctx.load_verify_file("/usr/src/tcpip/tcp.pem");
 		ssl::stream<tcp::socket> ssl_sock(io_context, ctx);
 		tcp::resolver resolver(io_context);
 //		tcp::resolver::query query(host, port);
@@ -49,7 +49,7 @@ int main()
 		ssl_sock.set_verify_mode(ssl::verify_peer);
 		ssl_sock.set_verify_callback(ssl::rfc2818_verification(host));
 		std::cout << "handshake:" << std::endl;
-		ssl_sock.handshake(ssl_socket::client);
+		ssl_sock.handshake(/*ssl_socket::client*/ssl::stream_base::client);
 		std::string req = "GET / HTTP/1.0\r\nhost:config.me\r\n\r\n";
 		boost::system::error_code err;
 		write(ssl_sock, boost::asio::buffer(req), err);
