@@ -4,6 +4,7 @@
 #include <boost/asio/ssl.hpp>
 #include <exception>
 #include <vector>
+#include <memory>
 
 using std::cout;
 using std::endl;
@@ -15,17 +16,31 @@ using boost::asio::ip::tcp;
 int main()
 {
 	const char* port = "443";
+	std::string cert = "server.pem";//"/etc/ssl/certs/GlobalSign_Root_CA.pem";
 	cout << "ssl server" << endl;
 	try
 	{
-		io::io_context io_context;
-		ssl::context ctx(ssl::context::sslv23);
-		ctx.set_default_verify_paths();
-		ctx.load_verify_file("/usr/src/tcpip/server.pem");
+		boost::asio::io_service io_context;
+		ssl::context ctx(boost::asio::ssl::context::tlsv1_server);
+		ctx.set_options(
+			boost::asio::ssl::context::default_workarounds
+			| boost::asio::ssl::context::no_sslv2
+			| boost::asio::ssl::context::single_dh_use);
+		ctx.use_certificate_chain_file(cert);
+		ctx.use_private_key_file("privkey.pem", boost::asio::ssl::context::pem);
+		ctx.use_tmp_dh_file("dh2048.pem");
+//		ctx.set_verify_mode(ssl::verify_peer);
+///		ctx.add_verify_path("/etc/ssl/certs");
+//		ctx.set_default_verify_paths();
+//		ctx.use_certificate_chain_file(/usr/src/tcpip/server.pem");
+//		ctx.use_private_key_file(/*"/usr/src/tcpip/key.pem"*/cert.c_str(), boost::asio::ssl::context::pem);
+//		ctx.use_certificate_chain_file(/*"/usr/src/tcpip/cert.pem"*/ cert);
+//		ctx.load_verify_file("/usr/src/tcpip/tcp.pem");
+//		ctx.use_tmp_dh_file("/usr/src/tcpip/dh2048.pem");
+		std::unique_ptr<ssl::stream<tcp::socket>> sclient = std::make_unique<ssl::stream<tcp::socket>>(io_context, ctx);
 		tcp::endpoint addr(boost::asio::ip::tcp::v4(), 443);
 		tcp::acceptor acceptor(io_context);
-		ssl::stream<tcp::socket> *sclient;
-		sclient = new ssl::stream<tcp::socket>(io_context, ctx);
+//		sclient = new ssl::stream<tcp::socket>(io_context, ctx);
 		acceptor.open(addr.protocol());
 		acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
 		acceptor.bind(addr);
