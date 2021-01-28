@@ -2,6 +2,7 @@
 #include <string>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
+#include <boost/asio/error.hpp>
 #include <exception>
 #include <vector>
 #include <memory>
@@ -45,17 +46,21 @@ int main()
 		acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
 		acceptor.bind(addr);
 		acceptor.listen();
+		cout << "accepting:" << endl;
 		acceptor.accept(sclient->next_layer());
-		sclient->handshake(ssl::stream_base::server);
+		cout << "handshaking" << endl;
+		sclient->handshake(boost::asio::ssl::stream_base::server);
 		std::vector<char> buff(256);
 		boost::system::error_code err;
 		io::read(*sclient, io::buffer(buff), err);
+		cout << "readed." << endl;
+		if (err.value() != 0 && err.value() != 1)
+			cout << "read err: " << err.message() << "code: " << err.value() << endl;
 		std::string msg(buff.begin(), buff.end());
 		cout << "msg: " << msg << endl;
-
-
-
-	}
+		std::string answer = "from ssl server";
+		io::write(*sclient, boost::asio::buffer(answer), err);
+		}
 	catch (std::exception& e)
 	{
 		cout << "exception: " << e.what() << endl;

@@ -2,6 +2,7 @@
 #include <boost/asio.hpp>
 #include <string>
 #include <boost/asio/ssl.hpp>
+#include <boost/asio/error.hpp>
 #include <vector>
 #include <example/common/root_certificates.hpp>
 
@@ -18,7 +19,7 @@ auto cb = [](bool preverified, boost::asio::ssl::verify_context& ctx) {
 	X509* cert = X509_STORE_CTX_get_current_cert(ctx.native_handle());
 	X509_NAME_oneline(X509_get_subject_name(cert), subject_name, 256);
 
-	std::cout << "SSL Verify: " << subject_name << "\n";
+	std::cout << "SSL Verify: "  "preverified: " << preverified << subject_name << "\n";
 
 	return true;
 };
@@ -68,14 +69,20 @@ int main()
 //		ssl_sock.set_verify_callback(ssl::rfc2818_verification(host));
 		std::cout << "handshake:" << std::endl;
 		ssl_sock.handshake(boost::asio::ssl::stream_base::client);
-		std::string req = "GET / HTTP/1.0\r\nhost:config.me\r\n\r\n";
+		std::string req = "from client";//"GET / HTTP/1.0\r\nhost:config.me\r\n\r\n";
 		boost::system::error_code err;
 		write(ssl_sock, boost::asio::buffer(req), err);
-		std::cout << "write err: " << err << std::endl;
+		if (err.value() != 0)
+			std::cout << "write err: " << err.value() << std::endl;
+		
 	std::vector<char> resp(256);
+	std::cout << "reading:" << endl;
 	read(ssl_sock, boost::asio::buffer(resp), err);
-		std::string sresp(resp.begin(), resp.end());
-		std::cout << "read: err: " << err << "resp: " << sresp << std::endl;
+	if (err.value() != 0)
+		std::cout << "read: err: " << err.message() << endl;
+	std::string sresp(resp.begin(), resp.end());
+		std::cout << "resp: " << sresp << std::endl;
+
 	}
 	catch (std::exception& e)
 	{
