@@ -6,6 +6,7 @@
 #include <exception>
 #include <vector>
 #include <memory>
+#include <future>
 
 using std::cout;
 using std::endl;
@@ -13,6 +14,11 @@ namespace ssl = boost::asio::ssl;
 namespace io = boost::asio;
 using boost::asio::ip::tcp;
 
+
+static void handle_handshake(ssl::stream<tcp::socket>* sock)
+{
+	sock->handshake(boost::asio::ssl::stream_base::server);
+}
 
 int main()
 {
@@ -49,11 +55,16 @@ int main()
 		cout << "accepting:" << endl;
 		acceptor.accept(sclient->next_layer());
 		cout << "handshaking" << endl;
-		sclient->handshake(boost::asio::ssl::stream_base::server);
+//		sclient->handshake(boost::asio::ssl::stream_base::server);
+		std::async(std::launch::async, handle_handshake, sclient.get());
+		cout << "after handshake" << endl;
 		std::vector<char> buff(256);
 		boost::system::error_code err;
-		io::read(*sclient, io::buffer(buff), err);
-		cout << "readed." << endl;
+//		io::read(*sclient, io::buffer(buff), err);
+		int read = sclient->read_some(boost::asio::buffer(buff, 256));
+		cout << "read size: " << read << endl;
+		std::string inmsg(buff.begin(), buff.end());
+
 		if (err.value() != 0 && err.value() != 1)
 			cout << "read err: " << err.message() << "code: " << err.value() << endl;
 		std::string msg(buff.begin(), buff.end());
